@@ -1,0 +1,154 @@
+<div class="container">
+  <div class="header">
+    <h1>My Books</h1>
+    <div class="user-info">
+      <p>Welcome, <%= current_user.email %>!</p>
+      <%= link_to "Profile", edit_user_registration_path, class: "btn btn-secondary" %>
+      <%= link_to "Sign out", destroy_user_session_path, method: :delete, class: "btn btn-outline-secondary" %>
+    </div>
+  </div>
+
+  <div class="actions">
+    <%= form_with url: create_from_isbn_books_path, method: :post, local: true, class: "isbn-form", data: { turbo: false } do |form| %>
+      <%= form.label :isbn, "Add book by ISBN or Title:" %>
+      <%= form.text_field :isbn, placeholder: "Enter ISBN or book title" %>
+      <%= form.submit "Add Book from Google Books", class: "btn btn-primary" %>
+    <% end %>
+    
+    <%= link_to "Add New Book Manually", new_book_path, class: "btn btn-secondary" %>
+  </div>
+
+<div id="books-list">
+  <% if @books.any? %>
+    <% @books.each do |book| %>
+      <div style="border: 1px solid #ccc; margin: 10px 0; padding: 15px;">
+        <% if book.image_url.present? %>
+          <img src="<%= book.image_url %>" alt="<%= book.title %>" style="width: 80px; height: 120px; float: left; margin-right: 15px;">
+        <% end %>
+        
+        <h3><%= link_to book.title, book %></h3>
+        <p><strong>購入理由:</strong> <%= book.purchase_reason.present? ? truncate(book.purchase_reason, length: 100) : "未登録" %></p>
+        <p><strong>購入日:</strong> <%= book.purchase_date.present? ? book.purchase_date.strftime("%Y年%m月%d日") : "未登録" %></p>
+        <% if book.author.present? %>
+          <p><strong>Author:</strong> <%= book.author %></p>
+        <% end %>
+        
+        <% if book.primary_isbn %>
+          <p><strong>ISBN:</strong> <%= book.primary_isbn %></p>
+        <% end %>
+        
+        <% if book.google_books_id.present? %>
+          <p><strong>Google Books ID:</strong> <%= book.google_books_id %></p>
+          <%= link_to "Refresh from Google Books", refresh_from_google_books_book_path(book), method: :patch %>
+        <% end %>
+        
+        <div style="clear: both; margin-top: 10px;">
+          <%= link_to "Edit", edit_book_path(book) %> |
+          <%= link_to "Delete", book, method: :delete, confirm: "Are you sure?" %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <p>No books found. Add some books using ISBN search or manual entry!</p>
+  <% end %>
+</div>
+
+<script>
+// ISBN検索のテスト用JavaScript
+function testISBNSearch() {
+  const isbn = prompt("Enter ISBN to search:");
+  if (!isbn) return;
+  
+  fetch(`/books/search_by_isbn?isbn=${isbn}`)
+    .then(response => response.json())
+    .then(data => {
+      console.log('Search results:', data);
+      alert('Check browser console for results');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Search failed');
+    });
+}
+</script>
+
+<button onclick="testISBNSearch()">Test ISBN Search (Console)</button>
+</div>
+
+<style>
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.user-info {
+  text-align: right;
+}
+
+.user-info p {
+  margin: 0 0 10px 0;
+  font-weight: bold;
+}
+
+.actions {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 5px;
+}
+
+.isbn-form {
+  margin-bottom: 15px;
+}
+
+.isbn-form input[type="text"] {
+  padding: 8px;
+  margin: 0 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.btn {
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-outline-secondary {
+  border: 1px solid #6c757d;
+  color: #6c757d;
+  background: white;
+}
+
+#books-list > div {
+  border: 1px solid #ddd;
+  margin: 15px 0;
+  padding: 20px;
+  border-radius: 5px;
+  background: white;
+}
+</style>

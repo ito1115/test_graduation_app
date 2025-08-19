@@ -1,0 +1,248 @@
+<div class="container">
+  <div class="header">
+    <h1><%= @book.title %></h1>
+    <div class="actions">
+      <%= link_to "Back to Books", books_path, class: "btn btn-secondary" %>
+      <%= link_to "Edit", edit_book_path(@book), class: "btn btn-primary" %>
+      <%= link_to "Delete", @book, method: :delete, confirm: "Are you sure?", class: "btn btn-danger" %>
+    </div>
+  </div>
+
+  <div class="book-detail">
+    <div class="book-image">
+      <% if @book.image_url.present? %>
+        <img src="<%= @book.image_url %>" alt="<%= @book.title %>" class="book-cover">
+      <% else %>
+        <div class="no-image">No Image Available</div>
+      <% end %>
+    </div>
+
+    <div class="book-info">
+      <div class="info-row">
+        <label>Title:</label>
+        <span><%= @book.title %></span>
+      </div>
+
+      <div class="info-row">
+        <label>購入理由:</label>
+        <span><%= @book.purchase_reason.present? ? @book.purchase_reason : "未登録" %></span>
+      </div>
+
+      <div class="info-row">
+        <label>購入日:</label>
+        <span><%= @book.purchase_date.present? ? @book.purchase_date.strftime("%Y年%m月%d日") : "未登録" %></span>
+      </div>
+
+      <% if @book.author.present? %>
+        <div class="info-row">
+          <label>Author:</label>
+          <span><%= @book.author %></span>
+        </div>
+      <% end %>
+
+      <% if @book.publisher.present? %>
+        <div class="info-row">
+          <label>Publisher:</label>
+          <span><%= @book.publisher %></span>
+        </div>
+      <% end %>
+
+      <% if @book.published_date.present? %>
+        <div class="info-row">
+          <label>Published Date:</label>
+          <span><%= @book.published_date %></span>
+        </div>
+      <% end %>
+
+      <% if @book.primary_isbn %>
+        <div class="info-row">
+          <label>ISBN:</label>
+          <span><%= @book.primary_isbn %></span>
+        </div>
+      <% end %>
+
+      <% if @book.google_books_id.present? %>
+        <div class="info-row">
+          <label>Google Books ID:</label>
+          <span><%= @book.google_books_id %></span>
+        </div>
+        <div class="info-row">
+          <%= link_to "Refresh from Google Books", refresh_from_google_books_book_path(@book), method: :patch, class: "btn btn-outline-primary" %>
+        </div>
+      <% end %>
+
+      <% if @book.description.present? %>
+        <div class="info-row description">
+          <label>Description:</label>
+          <p><%= simple_format(@book.description) %></p>
+        </div>
+      <% end %>
+
+      <div class="info-row">
+        <label>Added:</label>
+        <span><%= @book.created_at.strftime("%Y-%m-%d %H:%M") %></span>
+      </div>
+
+      <% if @book.updated_at != @book.created_at %>
+        <div class="info-row">
+          <label>Last Updated:</label>
+          <span><%= @book.updated_at.strftime("%Y-%m-%d %H:%M") %></span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #eee;
+}
+
+.header h1 {
+  margin: 0;
+  color: #333;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.book-detail {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.book-image {
+  flex-shrink: 0;
+}
+
+.book-cover {
+  width: 200px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.no-image {
+  width: 200px;
+  height: 300px;
+  background: #f5f5f5;
+  border: 2px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.book-info {
+  flex: 1;
+}
+
+.info-row {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.info-row label {
+  font-weight: bold;
+  color: #555;
+  min-width: 120px;
+  margin-right: 15px;
+}
+
+.info-row span {
+  color: #333;
+  line-height: 1.4;
+}
+
+.info-row.description {
+  flex-direction: column;
+}
+
+.info-row.description label {
+  margin-bottom: 10px;
+  min-width: auto;
+}
+
+.info-row.description p {
+  margin: 0;
+  color: #333;
+  line-height: 1.6;
+}
+
+.btn {
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 4px;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: center;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-outline-primary {
+  border: 1px solid #007bff;
+  color: #007bff;
+  background: white;
+}
+
+.btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .book-detail {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .book-cover, .no-image {
+    width: 150px;
+    height: 225px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .actions {
+    flex-wrap: wrap;
+  }
+}
+</style>
