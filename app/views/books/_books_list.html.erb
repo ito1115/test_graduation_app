@@ -1,0 +1,91 @@
+<div id="books-list">
+  <% if books.any? %>
+    <% books.each do |book| %>
+      <div class="book-card">
+        <% if book.image_url.present? %>
+          <img src="<%= book.image_url %>" alt="<%= book.title %>" class="book-image">
+        <% end %>
+        
+        <div class="book-content">
+          <h3><%= link_to book.title, book %></h3>
+          
+          <!-- Reading Status Display and Controls -->
+          <div class="reading-status-section">
+            <div class="current-status">
+              <span class="status-badge status-<%= book.reading_status || 'wish' %>">
+                <%= (book.reading_status || 'wish').humanize %>
+              </span>
+              <% if book.reading_status && book.send("#{book.reading_status}_date") %>
+                <small class="status-date">
+                  <%= book.send("#{book.reading_status}_date").strftime("%Y年%m月%d日") %>
+                </small>
+              <% end %>
+            </div>
+            
+            <!-- Status Change Buttons -->
+            <div class="status-controls">
+              <% if book.reading_status != 'wish' %>
+                <%= link_to "読みたい", 
+                    book_path(book), 
+                    method: :patch, 
+                    params: { book: { reading_status: 'wish' } },
+                    class: "btn btn-sm btn-outline-primary",
+                    data: { turbo_method: :patch } %>
+              <% end %>
+              
+              <% if book.reading_status != 'tsundoku' %>
+                <%= link_to "積読", 
+                    book_path(book), 
+                    method: :patch, 
+                    params: { book: { reading_status: 'tsundoku' } },
+                    class: "btn btn-sm btn-outline-warning",
+                    data: { turbo_method: :patch } %>
+              <% end %>
+              
+              <% if book.reading_status != 'completed' %>
+                <%= link_to "読了", 
+                    book_path(book), 
+                    method: :patch, 
+                    params: { book: { reading_status: 'completed' } },
+                    class: "btn btn-sm btn-outline-success",
+                    data: { turbo_method: :patch } %>
+              <% end %>
+            </div>
+          </div>
+          
+          <p><strong>購入理由:</strong> <%= book.purchase_reason.present? ? truncate(book.purchase_reason, length: 100) : "未登録" %></p>
+          <p><strong>購入日:</strong> <%= book.purchase_date.present? ? book.purchase_date.strftime("%Y年%m月%d日") : "未登録" %></p>
+          
+          <% if book.author.present? %>
+            <p><strong>Author:</strong> <%= book.author %></p>
+          <% end %>
+          
+          <% if book.primary_isbn %>
+            <p><strong>ISBN:</strong> <%= book.primary_isbn %></p>
+          <% end %>
+          
+          <% if book.google_books_id.present? %>
+            <p><strong>Google Books ID:</strong> <%= book.google_books_id %></p>
+            <%= link_to "Refresh from Google Books", refresh_from_google_books_book_path(book), data: { turbo_method: :patch } %>
+          <% end %>
+          
+          <div class="book-actions">
+            <%= link_to "Edit", edit_book_path(book), class: "btn btn-sm btn-secondary" %>
+            <%= link_to "Delete", book, 
+                data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, 
+                class: "btn btn-sm btn-danger" %>
+          </div>
+        </div>
+        
+        <div class="clearfix"></div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="no-books">
+      <p>この状態の本はありません。</p>
+      <% if defined?(books) && books.respond_to?(:model) %>
+        <%= link_to "本を追加", new_book_path, class: "btn btn-primary" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

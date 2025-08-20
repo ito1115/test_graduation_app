@@ -1,10 +1,20 @@
 class Book < ApplicationRecord
   belongs_to :user
   has_many :notifications, dependent: :destroy
+
+  enum reading_status: {
+    wish: 0,        # 読みたい
+    tsundoku: 1,    # 積読
+    completed: 2    # 読了
+  }
+
+  # 状態変更時の日付を自動記録
+  before_save :update_status_dates
   
   validates :title, presence: true, length: { maximum: 500 }
   validates :purchase_reason, presence: true, length: { maximum: 1000 }
   validates :purchase_date, presence: true
+  validates :reading_status, presence: true
   
   # Google Books API関連フィールド（オプショナル）
   validates :author, length: { maximum: 500 }
@@ -121,5 +131,20 @@ class Book < ApplicationRecord
   rescue => e
     Rails.logger.error "Failed to refresh book from Google Books: #{e.message}"
     false
+  end
+
+  private
+
+  def update_status_dates
+    return unless reading_status_changed?
+    
+    case reading_status
+    when 'wish'
+      self.wish_date = Time.current
+    when 'tsundoku'
+      self.tsundoku_date = Time.current
+    when 'completed'
+      self.completed_date = Time.current
+    end
   end
 end

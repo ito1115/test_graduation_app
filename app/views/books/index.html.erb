@@ -18,39 +18,50 @@
     <%= link_to "Add New Book Manually", new_book_path, class: "btn btn-secondary" %>
   </div>
 
-<div id="books-list">
-  <% if @books.any? %>
-    <% @books.each do |book| %>
-      <div style="border: 1px solid #ccc; margin: 10px 0; padding: 15px;">
-        <% if book.image_url.present? %>
-          <img src="<%= book.image_url %>" alt="<%= book.title %>" style="width: 80px; height: 120px; float: left; margin-right: 15px;">
-        <% end %>
-        
-        <h3><%= link_to book.title, book %></h3>
-        <p><strong>購入理由:</strong> <%= book.purchase_reason.present? ? truncate(book.purchase_reason, length: 100) : "未登録" %></p>
-        <p><strong>購入日:</strong> <%= book.purchase_date.present? ? book.purchase_date.strftime("%Y年%m月%d日") : "未登録" %></p>
-        <% if book.author.present? %>
-          <p><strong>Author:</strong> <%= book.author %></p>
-        <% end %>
-        
-        <% if book.primary_isbn %>
-          <p><strong>ISBN:</strong> <%= book.primary_isbn %></p>
-        <% end %>
-        
-        <% if book.google_books_id.present? %>
-          <p><strong>Google Books ID:</strong> <%= book.google_books_id %></p>
-          <%= link_to "Refresh from Google Books", refresh_from_google_books_book_path(book), data: { turbo_method: :patch } %>
-        <% end %>
-        
-        <div style="clear: both; margin-top: 10px;">
-          <%= link_to "Edit", edit_book_path(book) %> |
-          <%= link_to "Delete", book, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
-        </div>
-      </div>
-    <% end %>
-  <% else %>
-    <p>No books found. Add some books using ISBN search or manual entry!</p>
-  <% end %>
+<!-- Bootstrap Tabs for Reading Status -->
+<ul class="nav nav-tabs" id="readingStatusTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-books" type="button" role="tab">
+      すべて (<%= @books.count %>)
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="wish-tab" data-bs-toggle="tab" data-bs-target="#wish-books" type="button" role="tab">
+      読みたい (<%= @books.wish.count %>)
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tsundoku-tab" data-bs-toggle="tab" data-bs-target="#tsundoku-books" type="button" role="tab">
+      積読 (<%= @books.tsundoku.count %>)
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed-books" type="button" role="tab">
+      読了 (<%= @books.completed.count %>)
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content" id="readingStatusTabContent">
+  <!-- All Books Tab -->
+  <div class="tab-pane fade show active" id="all-books" role="tabpanel">
+    <%= render 'books_list', books: @books %>
+  </div>
+  
+  <!-- Wish Books Tab -->
+  <div class="tab-pane fade" id="wish-books" role="tabpanel">
+    <%= render 'books_list', books: @books.wish %>
+  </div>
+  
+  <!-- Tsundoku Books Tab -->
+  <div class="tab-pane fade" id="tsundoku-books" role="tabpanel">
+    <%= render 'books_list', books: @books.tsundoku %>
+  </div>
+  
+  <!-- Completed Books Tab -->
+  <div class="tab-pane fade" id="completed-books" role="tabpanel">
+    <%= render 'books_list', books: @books.completed %>
+  </div>
 </div>
 
 <script>
@@ -150,5 +161,106 @@ function testISBNSearch() {
   padding: 20px;
   border-radius: 5px;
   background: white;
+}
+
+/* Bootstrap Tabs Styling */
+.nav-tabs {
+  margin-bottom: 20px;
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+/* Book Card Styling */
+.book-card {
+  border: 1px solid #ddd;
+  margin: 15px 0;
+  padding: 20px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.book-image {
+  width: 80px;
+  height: 120px;
+  float: left;
+  margin-right: 15px;
+  border-radius: 4px;
+}
+
+.book-content {
+  overflow: hidden;
+}
+
+.reading-status-section {
+  margin: 15px 0;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #007bff;
+}
+
+.current-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-wish {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-tsundoku {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-completed {
+  background: #e8f5e8;
+  color: #388e3c;
+}
+
+.status-date {
+  color: #666;
+  font-style: italic;
+}
+
+.status-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.book-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.no-books {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.clearfix {
+  clear: both;
 }
 </style>

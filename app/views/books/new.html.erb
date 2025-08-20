@@ -69,6 +69,20 @@
       <small class="form-text">本を購入した日（予定日も含む）</small>
     </div>
 
+    <div class="form-group">
+      <div class="radio-group">
+        <%= form.radio_button :reading_status, 'wish', checked: (@book.reading_status || 'wish') == 'wish', class: "radio-input" %>
+        <%= form.label :reading_status_wish, '読みたい', class: "radio-label" %>
+        
+        <%= form.radio_button :reading_status, 'tsundoku', class: "radio-input" %>
+        <%= form.label :reading_status_tsundoku, '積読', class: "radio-label" %>
+        
+        <%= form.radio_button :reading_status, 'completed', class: "radio-input" %>
+        <%= form.label :reading_status_completed, '読了', class: "radio-label" %>
+      </div>
+      <small class="form-text">現在の読書状況を選択してください</small>
+    </div>
+
     <div class="form-actions">
       <%= form.submit "Create Book", class: "btn btn-primary" %>
       <%= link_to "Cancel", books_path, class: "btn btn-secondary" %>
@@ -214,6 +228,25 @@
 textarea.form-control {
   resize: vertical;
   min-height: 100px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.radio-input {
+  margin-right: 8px;
+}
+
+.radio-label {
+  margin-right: 15px;
+  font-weight: normal;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .form-actions {
