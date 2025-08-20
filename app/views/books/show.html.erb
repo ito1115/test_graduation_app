@@ -33,6 +33,56 @@
         <span><%= @book.purchase_date.present? ? @book.purchase_date.strftime("%Y年%m月%d日") : "未登録" %></span>
       </div>
 
+      <!-- Reading Status Section -->
+      <div class="reading-status-section">
+        <div class="current-status">
+          <label>読書ステータス:</label>
+          <div class="status-info">
+            <span class="status-badge status-<%= @book.reading_status || 'wish' %>">
+              <%= (@book.reading_status || 'wish').humanize %>
+            </span>
+            <% if @book.reading_status && @book.send("#{@book.reading_status}_date") %>
+              <small class="status-date">
+                (<%= @book.send("#{@book.reading_status}_date").strftime("%Y年%m月%d日") %>)
+              </small>
+            <% end %>
+          </div>
+        </div>
+        
+        <!-- Status Change Controls -->
+        <div class="status-controls">
+          <label>ステータス変更:</label>
+          <div class="status-buttons">
+            <% if @book.reading_status != 'wish' %>
+              <%= link_to "読みたい", 
+                  book_path(@book), 
+                  method: :patch, 
+                  params: { book: { reading_status: 'wish' } },
+                  class: "btn btn-sm btn-outline-primary",
+                  data: { turbo_method: :patch } %>
+            <% end %>
+            
+            <% if @book.reading_status != 'tsundoku' %>
+              <%= link_to "積読", 
+                  book_path(@book), 
+                  method: :patch, 
+                  params: { book: { reading_status: 'tsundoku' } },
+                  class: "btn btn-sm btn-outline-warning",
+                  data: { turbo_method: :patch } %>
+            <% end %>
+            
+            <% if @book.reading_status != 'completed' %>
+              <%= link_to "読了", 
+                  book_path(@book), 
+                  method: :patch, 
+                  params: { book: { reading_status: 'completed' } },
+                  class: "btn btn-sm btn-outline-success",
+                  data: { turbo_method: :patch } %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
       <% if @book.author.present? %>
         <div class="info-row">
           <label>Author:</label>
@@ -224,6 +274,94 @@
   transform: translateY(-1px);
 }
 
+/* Reading Status Styling */
+.reading-status-section {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.current-status {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.current-status label {
+  min-width: 120px;
+  margin-right: 15px;
+}
+
+.status-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-wish {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-tsundoku {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-completed {
+  background: #e8f5e8;
+  color: #388e3c;
+}
+
+.status-date {
+  color: #666;
+  font-style: italic;
+  font-size: 11px;
+}
+
+.status-controls {
+  display: flex;
+  align-items: center;
+}
+
+.status-controls label {
+  min-width: 120px;
+  margin-right: 15px;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.btn-outline-warning {
+  border: 1px solid #ffc107;
+  color: #ffc107;
+  background: white;
+}
+
+.btn-outline-success {
+  border: 1px solid #28a745;
+  color: #28a745;
+  background: white;
+}
+
 @media (max-width: 768px) {
   .book-detail {
     flex-direction: column;
@@ -243,6 +381,18 @@
   
   .actions {
     flex-wrap: wrap;
+  }
+  
+  .current-status, .status-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .current-status label, .status-controls label {
+    min-width: auto;
+    margin-right: 0;
+    margin-bottom: 5px;
   }
 }
 </style>

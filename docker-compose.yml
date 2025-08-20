@@ -10,7 +10,7 @@ services:
 
   web:
     build: .
-    command: bash -c "sleep 10 && bundle exec rails db:create db:migrate && bundle exec rails server -b 0.0.0.0"
+    command: bash -c "sleep 10 && rm -f /rails/tmp/pids/server.pid && bundle exec rails db:create db:migrate && bundle exec rails server -b 0.0.0.0"
     environment:
       - RAILS_ENV=development
     volumes:

@@ -27,9 +27,19 @@ class BooksController < ApplicationController
 
   def update
     if @book.update(book_params)
-      redirect_to @book, notice: 'Book was successfully updated.'
+      # 読書状態が変更された場合の処理
+      if params[:book][:reading_status].present?
+        status_name = @book.reading_status.humanize
+        redirect_to books_path, notice: "読書状態を「#{status_name}」に変更しました。"
+      else
+        redirect_to @book, notice: 'Book was successfully updated.'
+      end
     else
-      render :edit
+      if params[:book][:reading_status].present?
+        redirect_to books_path, alert: '読書状態の変更に失敗しました。'
+      else
+        render :edit
+      end
     end
   end
 
@@ -157,6 +167,6 @@ class BooksController < ApplicationController
     params.require(:book).permit(:title, :purchase_reason, :purchase_date, 
                                  :author, :publisher, :published_date, 
                                  :description, :isbn_10, :isbn_13, :image_url, 
-                                 :google_books_id)
+                                 :google_books_id, :reading_status)
   end
 end
