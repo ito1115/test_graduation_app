@@ -107,6 +107,25 @@ class BooksController < ApplicationController
     end
   end
 
+  def new_from_google_books
+    @book = current_user.books.build
+    
+    # Google Books情報を事前設定
+    if params[:google_books_id].present?
+      @book.google_books_id = params[:google_books_id]
+      @book.title = params[:title]
+      @book.author = params[:author]
+      @book.publisher = params[:publisher]
+      @book.published_date = params[:published_date]
+      @book.description = params[:description]
+      @book.isbn_10 = params[:isbn_10]
+      @book.isbn_13 = params[:isbn_13]
+      @book.image_url = params[:image_url]
+    end
+    
+    render :new
+  end
+
   def create_from_google_books
     book_data = {
       google_books_id: params[:google_books_id],
@@ -122,20 +141,9 @@ class BooksController < ApplicationController
     
     begin
       book = Book.create_from_google_books_data(user: current_user, data: book_data)
-      
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.prepend("books-list", partial: "books/book", locals: { book: book })
-        end
-        format.html { redirect_to book, notice: 'Book was successfully added from Google Books!' }
-      end
+      redirect_to book, notice: 'Book was successfully added from Google Books!'
     rescue ActiveRecord::RecordInvalid => e
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash", locals: { alert: "Failed to add book: #{e.message}" })
-        end
-        format.html { redirect_to books_path, alert: "Failed to create book: #{e.message}" }
-      end
+      redirect_to books_path, alert: "Failed to create book: #{e.message}"
     end
   end
 

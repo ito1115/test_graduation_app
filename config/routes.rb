@@ -10,6 +10,7 @@ Rails.application.routes.draw do
       get :search_by_isbn
       post :create_from_isbn
       get :search_google_books
+      get :new_from_google_books
       post :create_from_google_books
     end
   end

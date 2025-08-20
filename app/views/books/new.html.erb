@@ -16,10 +16,46 @@
       </div>
     <% end %>
 
-    <div class="form-group">
-      <%= form.label :title, class: "form-label required" %>
-      <%= form.text_field :title, class: "form-control", placeholder: "Enter book title", required: true %>
-    </div>
+    <!-- Google Books隠しフィールド -->
+    <% if @book.google_books_id.present? %>
+      <%= form.hidden_field :google_books_id %>
+      <%= form.hidden_field :title %>
+      <%= form.hidden_field :author %>
+      <%= form.hidden_field :publisher %>
+      <%= form.hidden_field :published_date %>
+      <%= form.hidden_field :description %>
+      <%= form.hidden_field :isbn_10 %>
+      <%= form.hidden_field :isbn_13 %>
+      <%= form.hidden_field :image_url %>
+      
+      <!-- Google Books情報を表示 -->
+      <div class="google-books-info">
+        <h3>本の情報（Google Booksより）</h3>
+        <div class="book-preview">
+          <% if @book.image_url.present? %>
+            <img src="<%= @book.image_url %>" alt="<%= @book.title %>" class="book-cover-preview">
+          <% end %>
+          <div class="book-details">
+            <p><strong>タイトル:</strong> <%= @book.title %></p>
+            <% if @book.author.present? %>
+              <p><strong>著者:</strong> <%= @book.author %></p>
+            <% end %>
+            <% if @book.publisher.present? %>
+              <p><strong>出版社:</strong> <%= @book.publisher %></p>
+            <% end %>
+            <% if @book.published_date.present? %>
+              <p><strong>出版日:</strong> <%= @book.published_date %></p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <!-- Google Books情報がない場合はタイトル入力フィールドを表示 -->
+      <div class="form-group">
+        <%= form.label :title, class: "form-label required" %>
+        <%= form.text_field :title, class: "form-control", placeholder: "Enter book title", required: true %>
+      </div>
+    <% end %>
 
     <div class="form-group">
       <%= form.label :purchase_reason, "購入理由", class: "form-label required" %>
@@ -29,7 +65,7 @@
 
     <div class="form-group">
       <%= form.label :purchase_date, "購入日", class: "form-label required" %>
-      <%= form.date_field :purchase_date, class: "form-control", required: true %>
+      <%= form.date_field :purchase_date, class: "form-control", required: true, value: Date.current %>
       <small class="form-text">本を購入した日（予定日も含む）</small>
     </div>
 
@@ -45,6 +81,45 @@
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.google-books-info {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.google-books-info h3 {
+  margin: 0 0 15px 0;
+  color: #495057;
+  font-size: 18px;
+}
+
+.book-preview {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.book-cover-preview {
+  width: 80px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.book-details {
+  flex: 1;
+}
+
+.book-details p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #495057;
 }
 
 .header {
