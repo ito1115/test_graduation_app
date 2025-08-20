@@ -61,7 +61,9 @@ class Book < ApplicationRecord
         isbn_10: data[:isbn_10],
         isbn_13: data[:isbn_13],
         image_url: data[:image_url],
-        google_books_id: data[:google_books_id]
+        google_books_id: data[:google_books_id],
+        purchase_reason: data[:purchase_reason] || 'Added from Google Books',
+        purchase_date: data[:purchase_date] || Date.current
       )
     end
     

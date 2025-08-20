@@ -120,12 +120,22 @@ class BooksController < ApplicationController
       image_url: params[:image_url]
     }
     
-    book = Book.create_from_google_books_data(user: current_user, data: book_data)
-    
-    if book
-      redirect_to book, notice: 'Book was successfully added from Google Books!'
-    else
-      redirect_to books_path, alert: 'Failed to create book from Google Books data'
+    begin
+      book = Book.create_from_google_books_data(user: current_user, data: book_data)
+      
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.prepend("books-list", partial: "books/book", locals: { book: book })
+        end
+        format.html { redirect_to book, notice: 'Book was successfully added from Google Books!' }
+      end
+    rescue ActiveRecord::RecordInvalid => e
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash", locals: { alert: "Failed to add book: #{e.message}" })
+        end
+        format.html { redirect_to books_path, alert: "Failed to create book: #{e.message}" }
+      end
     end
   end
 
