@@ -68,19 +68,17 @@
           </div>
 
           <div class="book-actions">
-            <%= form_with url: create_from_google_books_books_path, method: :post, local: true, class: "add-book-form" do |form| %>
-              <%= form.hidden_field :google_books_id, value: book_data[:google_books_id] %>
-              <%= form.hidden_field :title, value: book_data[:title] %>
-              <%= form.hidden_field :author, value: book_data[:author] %>
-              <%= form.hidden_field :publisher, value: book_data[:publisher] %>
-              <%= form.hidden_field :published_date, value: book_data[:published_date] %>
-              <%= form.hidden_field :description, value: book_data[:description] %>
-              <%= form.hidden_field :isbn_10, value: book_data[:isbn_10] %>
-              <%= form.hidden_field :isbn_13, value: book_data[:isbn_13] %>
-              <%= form.hidden_field :image_url, value: book_data[:image_url] %>
-              
-              <%= form.submit "Add This Book", class: "btn btn-primary" %>
-            <% end %>
+            <%= link_to "Add This Book", new_from_google_books_books_path(
+                  google_books_id: book_data[:google_books_id],
+                  title: book_data[:title],
+                  author: book_data[:author],
+                  publisher: book_data[:publisher],
+                  published_date: book_data[:published_date],
+                  description: book_data[:description],
+                  isbn_10: book_data[:isbn_10],
+                  isbn_13: book_data[:isbn_13],
+                  image_url: book_data[:image_url]
+                ), class: "btn btn-primary" %>
           </div>
         </div>
       <% end %>
