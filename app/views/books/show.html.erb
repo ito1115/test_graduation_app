@@ -4,7 +4,7 @@
     <div class="actions">
       <%= link_to "Back to Books", books_path, class: "btn btn-secondary" %>
       <%= link_to "Edit", edit_book_path(@book), class: "btn btn-primary" %>
-      <%= link_to "Delete", @book, method: :delete, confirm: "Are you sure?", class: "btn btn-danger" %>
+      <%= link_to "Delete", @book, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger" %>
     </div>
   </div>
 
@@ -67,7 +67,7 @@
           <span><%= @book.google_books_id %></span>
         </div>
         <div class="info-row">
-          <%= link_to "Refresh from Google Books", refresh_from_google_books_book_path(@book), method: :patch, class: "btn btn-outline-primary" %>
+          <%= link_to "Refresh from Google Books", refresh_from_google_books_book_path(@book), data: { turbo_method: :patch }, class: "btn btn-outline-primary" %>
         </div>
       <% end %>
 

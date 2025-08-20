@@ -4,7 +4,7 @@
     <div class="user-info">
       <p>Welcome, <%= current_user.email %>!</p>
       <%= link_to "Profile", edit_user_registration_path, class: "btn btn-secondary" %>
-      <%= link_to "Sign out", destroy_user_session_path, method: :delete, class: "btn btn-outline-secondary" %>
+      <%= link_to "Sign out", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-outline-secondary" %>
     </div>
   </div>
 
@@ -39,12 +39,12 @@
         
         <% if book.google_books_id.present? %>
           <p><strong>Google Books ID:</strong> <%= book.google_books_id %></p>
-          <%= link_to "Refresh from Google Books", refresh_from_google_books_book_path(book), method: :patch %>
+          <%= link_to "Refresh from Google Books", refresh_from_google_books_book_path(book), data: { turbo_method: :patch } %>
         <% end %>
         
         <div style="clear: both; margin-top: 10px;">
           <%= link_to "Edit", edit_book_path(book) %> |
-          <%= link_to "Delete", book, method: :delete, confirm: "Are you sure?" %>
+          <%= link_to "Delete", book, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
         </div>
       </div>
     <% end %>
