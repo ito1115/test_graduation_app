@@ -21,50 +21,67 @@
 <!-- Bootstrap Tabs for Reading Status -->
 <ul class="nav nav-tabs" id="readingStatusTabs" role="tablist">
   <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-books" type="button" role="tab">
+    <button class="nav-link active" id="all-tab" data-status="all" type="button" role="tab">
       すべて (<%= @books.count %>)
     </button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="wish-tab" data-bs-toggle="tab" data-bs-target="#wish-books" type="button" role="tab">
+    <button class="nav-link" id="wish-tab" data-status="wish" type="button" role="tab">
       読みたい (<%= @books.wish.count %>)
     </button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tsundoku-tab" data-bs-toggle="tab" data-bs-target="#tsundoku-books" type="button" role="tab">
+    <button class="nav-link" id="tsundoku-tab" data-status="tsundoku" type="button" role="tab">
       積読 (<%= @books.tsundoku.count %>)
     </button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed-books" type="button" role="tab">
+    <button class="nav-link" id="completed-tab" data-status="completed" type="button" role="tab">
       読了 (<%= @books.completed.count %>)
     </button>
   </li>
 </ul>
 
+<!-- Books List (Single List with Filtering) -->
 <div class="tab-content" id="readingStatusTabContent">
-  <!-- All Books Tab -->
-  <div class="tab-pane fade show active" id="all-books" role="tabpanel">
+  <div class="tab-pane fade show active" id="books-container" role="tabpanel">
     <%= render 'books_list', books: @books %>
-  </div>
-  
-  <!-- Wish Books Tab -->
-  <div class="tab-pane fade" id="wish-books" role="tabpanel">
-    <%= render 'books_list', books: @books.wish %>
-  </div>
-  
-  <!-- Tsundoku Books Tab -->
-  <div class="tab-pane fade" id="tsundoku-books" role="tabpanel">
-    <%= render 'books_list', books: @books.tsundoku %>
-  </div>
-  
-  <!-- Completed Books Tab -->
-  <div class="tab-pane fade" id="completed-books" role="tabpanel">
-    <%= render 'books_list', books: @books.completed %>
   </div>
 </div>
 
 <script>
+// Tab filtering functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const tabButtons = document.querySelectorAll('[data-status]');
+  const bookCards = document.querySelectorAll('.book-card[data-status]');
+  
+  tabButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Remove active class from all buttons
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      
+      // Add active class to clicked button
+      this.classList.add('active');
+      
+      // Get selected status
+      const selectedStatus = this.getAttribute('data-status');
+      
+      // Filter book cards
+      bookCards.forEach(card => {
+        const cardStatus = card.getAttribute('data-status');
+        
+        if (selectedStatus === 'all' || cardStatus === selectedStatus) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  });
+});
+
 // ISBN検索のテスト用JavaScript
 function testISBNSearch() {
   const isbn = prompt("Enter ISBN to search:");
@@ -166,6 +183,42 @@ function testISBNSearch() {
 /* Bootstrap Tabs Styling */
 .nav-tabs {
   margin-bottom: 20px;
+  display: flex;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.nav-tabs .nav-item {
+  flex: 1;
+}
+
+.nav-tabs .nav-link {
+  display: block;
+  text-align: center;
+  width: 100%;
+  border: 1px solid transparent;
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+  padding: 12px 8px;
+  color: #495057;
+  text-decoration: none;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  border-color: #e9ecef #e9ecef #dee2e6;
+  background-color: #f8f9fa;
+}
+
+.nav-tabs .nav-link.active {
+  color: #495057;
+  background-color: #fff;
+  border-color: #dee2e6 #dee2e6 #fff;
+  border-bottom-color: transparent;
 }
 
 .tab-content {
@@ -262,5 +315,20 @@ function testISBNSearch() {
 
 .clearfix {
   clear: both;
+}
+
+/* Responsive Styles for Tabs */
+@media (max-width: 768px) {
+  .nav-tabs .nav-link {
+    font-size: 12px;
+    padding: 10px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-tabs .nav-link {
+    font-size: 11px;
+    padding: 8px 2px;
+  }
 }
 </style>

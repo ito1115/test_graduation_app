@@ -1,7 +1,7 @@
 <div id="books-list">
   <% if books.any? %>
     <% books.each do |book| %>
-      <div class="book-card">
+      <div class="book-card" data-status="<%= book.reading_status || 'wish' %>">
         <% if book.image_url.present? %>
           <img src="<%= book.image_url %>" alt="<%= book.title %>" class="book-image">
         <% end %>
