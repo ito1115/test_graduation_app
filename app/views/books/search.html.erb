@@ -1,0 +1,333 @@
+<div class="container">
+  <div class="header">
+    <h1>本を検索</h1>
+    <div class="header-actions">
+      <%= link_to "My Books", books_path, class: "btn btn-secondary" %>
+      <%= link_to "Add Book Manually", new_book_path, class: "btn btn-outline-primary" %>
+    </div>
+  </div>
+
+  <div class="search-form">
+    <%= form_with url: search_books_path, method: :get, local: true, class: "search-form-inner" do |form| %>
+      <%= form.label :query, "タイトル・ISBN" %>
+      <%= form.text_field :query, value: @query, placeholder: "本のタイトルまたはISBNを入力", class: "search-input" %>
+      <%= form.submit "検索", class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @query.present? %>
+    <div class="search-info">
+      <p><strong>"<%= @query %>"の検索結果: <%= @search_results.length %>件</strong></p>
+    </div>
+
+    <% if @search_results.any? %>
+      <div class="search-results">
+        <% @search_results.each_with_index do |book_data, index| %>
+          <div class="search-result-item">
+            <div class="book-image">
+              <% if book_data[:image_url].present? %>
+                <img src="<%= book_data[:image_url] %>" alt="<%= book_data[:title] %>" class="book-cover">
+              <% else %>
+                <div class="no-image">No Image</div>
+              <% end %>
+            </div>
+
+            <div class="book-info">
+              <h3><%= book_data[:title] %></h3>
+              
+              <% if book_data[:author].present? %>
+                <p class="author"><strong>Author:</strong> <%= book_data[:author] %></p>
+              <% end %>
+              
+              <% if book_data[:publisher].present? %>
+                <p class="publisher"><strong>Publisher:</strong> <%= book_data[:publisher] %></p>
+              <% end %>
+              
+              <% if book_data[:published_date].present? %>
+                <p class="published-date"><strong>Published:</strong> <%= book_data[:published_date] %></p>
+              <% end %>
+              
+              <% if book_data[:isbn_13] || book_data[:isbn_10] %>
+                <p class="isbn">
+                  <strong>ISBN:</strong> 
+                  <%= book_data[:isbn_13] || book_data[:isbn_10] %>
+                </p>
+              <% end %>
+              
+              <% if book_data[:description].present? %>
+                <div class="description">
+                  <strong>Description:</strong>
+                  <p class="description-text">
+                    <%= truncate(book_data[:description], length: 200) %>
+                  </p>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="book-actions">
+              <%= link_to "Add This Book", new_from_google_books_books_path(
+                    google_books_id: book_data[:google_books_id],
+                    title: book_data[:title],
+                    author: book_data[:author],
+                    publisher: book_data[:publisher],
+                    published_date: book_data[:published_date],
+                    description: book_data[:description],
+                    isbn_10: book_data[:isbn_10],
+                    isbn_13: book_data[:isbn_13],
+                    image_url: book_data[:image_url]
+                  ), class: "btn btn-primary" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="no-results">
+        <h3>検索結果が見つかりませんでした</h3>
+        <p>別のタイトルやキーワードで検索してみてください。</p>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<style>
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #eee;
+}
+
+.header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 28px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.search-form {
+  margin-bottom: 30px;
+  padding: 25px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.search-form-inner {
+  display: flex;
+  gap: 15px;
+  align-items: end;
+}
+
+.search-form label {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.search-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  flex: 1;
+  min-width: 300px;
+}
+
+.search-info {
+  margin-bottom: 25px;
+  padding: 10px 15px;
+  background: #e3f2fd;
+  border-radius: 5px;
+  border-left: 4px solid #2196f3;
+}
+
+.search-info p {
+  margin: 0;
+  color: #1565c0;
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.search-result-item {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: box-shadow 0.3s;
+}
+
+.search-result-item:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.book-image {
+  flex-shrink: 0;
+}
+
+.book-cover {
+  width: 100px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.no-image {
+  width: 100px;
+  height: 150px;
+  background: #f5f5f5;
+  border: 1px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 12px;
+  border-radius: 5px;
+}
+
+.book-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.book-info h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.book-info p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.description {
+  margin-top: 10px;
+}
+
+.description-text {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #555;
+}
+
+.book-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.btn {
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 4px;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-outline-primary {
+  border: 1px solid #007bff;
+  color: #007bff;
+  background: white;
+}
+
+.btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.no-results h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.no-results p {
+  margin: 0;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
+  }
+  
+  .search-form-inner {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .search-input {
+    min-width: auto;
+  }
+  
+  .search-result-item {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .book-image {
+    align-self: center;
+  }
+  
+  .book-actions {
+    align-self: stretch;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}
+</style>

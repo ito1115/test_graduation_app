@@ -49,51 +49,24 @@ class BooksController < ApplicationController
   end
 
   # Google Books API連携機能
-  def search_by_isbn
-    isbn = params[:isbn]
-    
-    if isbn.blank?
-      render json: { error: 'ISBN is required' }, status: :bad_request
-      return
-    end
 
-    results = Book.search_google_books_by_isbn(isbn)
+  def search
+    @query = params[:query] || params[:isbn]
+    @search_results = []
     
-    if results.empty?
-      render json: { error: 'No books found for this ISBN' }, status: :not_found
-    else
-      render json: { books: results }
-    end
-  end
-
-  def create_from_isbn
-    query = params[:isbn]
-    
-    if query.blank?
-      redirect_to books_path, alert: 'Search query is required'
+    if @query.blank?
       return
     end
 
     # まずISBN検索を試す
-    book = Book.create_from_isbn(user: current_user, isbn: query)
+    @search_results = GoogleBooksService.search_by_isbn(@query)
     
     # ISBNで見つからない場合はタイトル検索を試す
-    if book.nil?
-      results = GoogleBooksService.search_by_title(query)
-      if results && !results.empty?
-        # 常に検索結果ページを表示してユーザーに選択させる
-        @search_results = results
-        @query = query
-        render :search_results
-        return
-      end
+    if @search_results.blank?
+      @search_results = GoogleBooksService.search_by_title(@query)
     end
     
-    if book
-      redirect_to book, notice: 'Book was successfully added from Google Books!'
-    else
-      redirect_to books_path, alert: "Could not find book with query '#{query}' or failed to create"
-    end
+    @search_results ||= []
   end
 
   def search_google_books
@@ -136,26 +109,6 @@ class BooksController < ApplicationController
     render :new
   end
 
-  def create_from_google_books
-    book_data = {
-      google_books_id: params[:google_books_id],
-      title: params[:title],
-      author: params[:author],
-      publisher: params[:publisher],
-      published_date: params[:published_date],
-      description: params[:description],
-      isbn_10: params[:isbn_10],
-      isbn_13: params[:isbn_13],
-      image_url: params[:image_url]
-    }
-    
-    begin
-      book = Book.create_from_google_books_data(user: current_user, data: book_data)
-      redirect_to book, notice: 'Book was successfully added from Google Books!'
-    rescue ActiveRecord::RecordInvalid => e
-      redirect_to books_path, alert: "Failed to create book: #{e.message}"
-    end
-  end
 
   private
 

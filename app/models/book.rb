@@ -10,6 +10,8 @@ class Book < ApplicationRecord
 
   # 状態変更時の日付を自動記録
   before_save :update_status_dates
+  # 空文字列をnilに変換してユニーク制約エラーを防ぐ
+  before_save :normalize_isbn_fields
   
   validates :title, presence: true, length: { maximum: 500 }
   validates :purchase_reason, presence: true, length: { maximum: 1000 }
@@ -146,5 +148,11 @@ class Book < ApplicationRecord
     when 'completed'
       self.completed_date = Time.current
     end
+  end
+
+  def normalize_isbn_fields
+    self.isbn_10 = nil if isbn_10.blank?
+    self.isbn_13 = nil if isbn_13.blank?
+    self.google_books_id = nil if google_books_id.blank?
   end
 end

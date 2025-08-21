@@ -55,29 +55,23 @@
           <div class="status-buttons">
             <% if @book.reading_status != 'wish' %>
               <%= link_to "読みたい", 
-                  book_path(@book), 
-                  method: :patch, 
-                  params: { book: { reading_status: 'wish' } },
-                  class: "btn btn-sm btn-outline-primary",
-                  data: { turbo_method: :patch } %>
+                  book_path(@book, book: { reading_status: 'wish' }), 
+                  data: { turbo_method: :patch },
+                  class: "btn btn-sm btn-outline-primary" %>
             <% end %>
             
             <% if @book.reading_status != 'tsundoku' %>
               <%= link_to "積読", 
-                  book_path(@book), 
-                  method: :patch, 
-                  params: { book: { reading_status: 'tsundoku' } },
-                  class: "btn btn-sm btn-outline-warning",
-                  data: { turbo_method: :patch } %>
+                  book_path(@book, book: { reading_status: 'tsundoku' }), 
+                  data: { turbo_method: :patch },
+                  class: "btn btn-sm btn-outline-warning" %>
             <% end %>
             
             <% if @book.reading_status != 'completed' %>
               <%= link_to "読了", 
-                  book_path(@book), 
-                  method: :patch, 
-                  params: { book: { reading_status: 'completed' } },
-                  class: "btn btn-sm btn-outline-success",
-                  data: { turbo_method: :patch } %>
+                  book_path(@book, book: { reading_status: 'completed' }), 
+                  data: { turbo_method: :patch },
+                  class: "btn btn-sm btn-outline-success" %>
             <% end %>
           </div>
         </div>
