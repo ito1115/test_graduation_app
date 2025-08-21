@@ -13,6 +13,17 @@
     <%= link_to "手動で本を追加", new_book_path, class: "btn btn-secondary" %>
   </div>
 
+  <!-- My Books検索フォーム -->
+  <div class="my-books-search">
+    <div class="search-box">
+      <input type="text" id="myBooksSearchInput" placeholder="My Booksを検索（タイトル・著者名）" class="search-input">
+      <button type="button" id="clearSearch" class="clear-button" style="display: none;">×</button>
+    </div>
+    <div class="search-results-info" id="searchResultsInfo" style="display: none;">
+      <span id="searchResultsCount">0</span>件の結果が見つかりました
+    </div>
+  </div>
+
 <!-- Bootstrap Tabs for Reading Status -->
 <ul class="nav nav-tabs" id="readingStatusTabs" role="tablist">
   <li class="nav-item" role="presentation">
@@ -45,6 +56,98 @@
 </div>
 
 <script>
+// My Books検索機能
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('myBooksSearchInput');
+  const clearButton = document.getElementById('clearSearch');
+  const searchResultsInfo = document.getElementById('searchResultsInfo');
+  const searchResultsCount = document.getElementById('searchResultsCount');
+  const bookCards = document.querySelectorAll('.book-card');
+  const tabButtons = document.querySelectorAll('#readingStatusTabs [data-status]');
+  
+  if (searchInput) {
+    // 検索実行関数
+    function performSearch() {
+      const query = searchInput.value.trim().toLowerCase();
+      let visibleCount = 0;
+      let currentActiveStatus = 'all';
+      
+      // 現在アクティブなタブを取得
+      const activeTab = document.querySelector('#readingStatusTabs .nav-link.active');
+      if (activeTab) {
+        currentActiveStatus = activeTab.getAttribute('data-status');
+      }
+      
+      // クリアボタンの表示/非表示
+      clearButton.style.display = query.length > 0 ? 'block' : 'none';
+      
+      // 各書籍カードをチェック
+      bookCards.forEach(card => {
+        const title = card.querySelector('h3 a')?.textContent?.toLowerCase() || '';
+        
+        // 著者名を取得（Author:を含むpタグを探す）
+        let author = '';
+        const authorElements = card.querySelectorAll('p');
+        authorElements.forEach(p => {
+          if (p.textContent.includes('Author:')) {
+            author = p.textContent.toLowerCase();
+          }
+        });
+        
+        const cardStatus = card.getAttribute('data-status');
+        
+        // ステータスフィルターをチェック
+        const statusMatch = currentActiveStatus === 'all' || cardStatus === currentActiveStatus;
+        
+        // 検索クエリーをチェック
+        const searchMatch = query.length === 0 || 
+                           title.includes(query) || 
+                           author.includes(query);
+        
+        // 両方の条件を満たすかチェック
+        if (statusMatch && searchMatch) {
+          card.style.display = 'block';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      
+      // 検索結果情報の表示
+      if (query.length > 0) {
+        searchResultsCount.textContent = visibleCount;
+        searchResultsInfo.style.display = 'block';
+      } else {
+        searchResultsInfo.style.display = 'none';
+      }
+    }
+    
+    // リアルタイム検索
+    searchInput.addEventListener('input', performSearch);
+    
+    // Enterキーでの検索
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        performSearch();
+      }
+    });
+    
+    // クリアボタン
+    clearButton.addEventListener('click', function() {
+      searchInput.value = '';
+      performSearch();
+    });
+    
+    // タブ切り替え時も検索を再実行
+    tabButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        setTimeout(performSearch, 100);
+      });
+    });
+  }
+});
+
 // Tab filtering functionality
 document.addEventListener('DOMContentLoaded', function() {
   const tabButtons = document.querySelectorAll('#readingStatusTabs [data-status]');
@@ -124,10 +227,82 @@ function testISBNSearch() {
 }
 
 .actions {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   padding: 20px;
   background: #f8f9fa;
   border-radius: 5px;
+}
+
+/* My Books検索フォームのスタイル */
+.my-books-search {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid #ddd;
+  border-radius: 25px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #007bff;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+.search-input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+.clear-button {
+  position: absolute;
+  right: 12px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.clear-button:hover {
+  background: #5a6268;
+}
+
+.search-results-info {
+  padding: 8px 16px;
+  background: #e3f2fd;
+  color: #1565c0;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-block;
+  border-left: 4px solid #2196f3;
 }
 
 .isbn-form {
