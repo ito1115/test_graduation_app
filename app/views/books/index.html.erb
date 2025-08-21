@@ -125,14 +125,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // リアルタイム検索
     searchInput.addEventListener('input', performSearch);
     
-    // Enterキーでの検索
-    searchInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        performSearch();
-      }
-    });
-    
     // クリアボタン
     clearButton.addEventListener('click', function() {
       searchInput.value = '';
