@@ -10,12 +10,12 @@
 
   <div class="actions">
     <%= form_with url: create_from_isbn_books_path, method: :post, local: true, class: "isbn-form", data: { turbo: false } do |form| %>
-      <%= form.label :isbn, "Add book by ISBN or Title:" %>
-      <%= form.text_field :isbn, placeholder: "Enter ISBN or book title" %>
-      <%= form.submit "Add Book from Google Books", class: "btn btn-primary" %>
+      <%= form.label :isbn, "本を探す" %>
+      <%= form.text_field :isbn, placeholder: "タイトル・ISBN" %>
+      <%= form.submit "検索", class: "btn btn-primary" %>
     <% end %>
     
-    <%= link_to "Add New Book Manually", new_book_path, class: "btn btn-secondary" %>
+    <!-- %= link_to "Add New Book Manually", new_book_path, class: "btn btn-secondary" % -->
   </div>
 
 <!-- Bootstrap Tabs for Reading Status -->
