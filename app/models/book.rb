@@ -32,6 +32,7 @@ class Book < ApplicationRecord
   scope :search_by_title, ->(query) { where("title ILIKE ?", "%#{query}%") }
   scope :search_by_author, ->(query) { where("author ILIKE ?", "%#{query}%") }
   scope :with_google_books_id, -> { where.not(google_books_id: [nil, ""]) }
+  scope :tsundoku, -> { where(reading_status: :tsundoku) }
   
   # Google Books API連携メソッド
   class << self
