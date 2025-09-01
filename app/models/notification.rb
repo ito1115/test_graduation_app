@@ -1,6 +1,6 @@
 class Notification < ApplicationRecord
   belongs_to :user
-  belongs_to :book, optional: true
+  belongs_to :book
   
   validates :notification_type, presence: true, inclusion: { 
     in: %w[recommendation reminder weekly_digest monthly_summary],
