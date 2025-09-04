@@ -34,8 +34,69 @@ class Book < ApplicationRecord
   scope :with_google_books_id, -> { where.not(google_books_id: [nil, ""]) }
   scope :tsundoku, -> { where(reading_status: :tsundoku) }
   
+  # 推薦ロジック用スコープ
+  scope :for_recommendation, ->(user, exclude_recent_days: 30) {
+    tsundoku
+      .by_user(user)
+      .where.not(
+        id: recent_recommended_book_ids(user, exclude_recent_days)
+      )
+  }
+  
+  scope :older_tsundoku_first, -> {
+    order(:tsundoku_date, :created_at)
+  }
+  
   # Google Books API連携メソッド
   class << self
+    # 最近推薦された本のIDを取得
+    def recent_recommended_book_ids(user, days = 30)
+      Notification.for_user(user)
+                  .where(sent_at: days.days.ago..Time.current)
+                  .pluck(:book_id)
+                  .compact
+    end
+    
+    # 推薦本を選択（改良版）
+    def select_recommendation_book(user)
+      candidates = for_recommendation(user)
+      
+      return nil if candidates.empty?
+      
+      # 積読期間に基づく重み付け選択
+      weighted_selection(candidates)
+    end
+    
+    private
+    
+    # 積読期間による重み付けランダム選択
+    def weighted_selection(books)
+      return books.first if books.count == 1
+      
+      # 積読期間が長いほど重みを大きく
+      weighted_books = books.map do |book|
+        days_since_tsundoku = book.tsundoku_date ? 
+          (Time.current - book.tsundoku_date) / 1.day : 
+          0
+        weight = [days_since_tsundoku, 1].max  # 最低重み1
+        
+        { book: book, weight: weight }
+      end
+      
+      # 重み付きランダム選択
+      total_weight = weighted_books.sum { |item| item[:weight] }
+      random_value = rand * total_weight
+      
+      cumulative_weight = 0
+      weighted_books.each do |item|
+        cumulative_weight += item[:weight]
+        return item[:book] if random_value <= cumulative_weight
+      end
+      
+      # フォールバック
+      books.sample
+    end
+    
     def create_from_isbn(user:, isbn:)
       results = GoogleBooksService.search_by_isbn(isbn)
       return nil if results.nil? || results.empty?
