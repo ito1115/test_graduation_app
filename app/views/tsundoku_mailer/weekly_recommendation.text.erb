@@ -1,0 +1,41 @@
+📚 今週のおすすめ積読本
+====================
+
+<%= @user.email %>さん、こんにちは！
+
+<% if @recommended_book %>
+今週は読書の週にしませんか？
+積読本の中からおすすめの1冊をピックアップしました！
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 今週のおすすめ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+タイトル: <%= @recommended_book.title %>
+<% if @recommended_book.author.present? %>
+著者: <%= @recommended_book.author %>
+<% end %>
+
+<% if @recommended_book.description.present? %>
+内容:
+<%= @recommended_book.description.gsub(/<[^>]*>/, '').strip %>
+
+<% end %>
+積読開始日: <%= @recommended_book.tsundoku_date&.strftime("%Y年%m月%d日") || "不明" %>
+購入理由: <%= @recommended_book.purchase_reason %>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+現在の積読本: <%= @tsundoku_count %>冊
+
+今週、この1冊から読書を再開してみませんか？
+<% else %>
+🎉 おめでとうございます！
+
+現在、積読中の本はありません。
+新しい本を探して、学びの旅を続けましょう！
+<% end %>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+読書管理アプリより
+素晴らしい1週間を！📚✨

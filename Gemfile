@@ -68,3 +68,4 @@ group :test do
 end
 
 gem 'devise'
+gem 'whenever', require: false
