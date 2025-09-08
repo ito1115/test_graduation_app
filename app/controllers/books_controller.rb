@@ -92,7 +92,11 @@ class BooksController < ApplicationController
 
   def new_from_google_books
     @book = current_user.books.build
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> heroku/master
     # Google Books情報を事前設定
     if params[:google_books_id].present?
       @book.google_books_id = params[:google_books_id]
@@ -104,6 +108,32 @@ class BooksController < ApplicationController
       @book.isbn_10 = params[:isbn_10]
       @book.isbn_13 = params[:isbn_13]
       @book.image_url = params[:image_url]
+<<<<<<< HEAD
+=======
+    end
+    
+    render :new
+  end
+
+  def create_from_google_books
+    book_data = {
+      google_books_id: params[:google_books_id],
+      title: params[:title],
+      author: params[:author],
+      publisher: params[:publisher],
+      published_date: params[:published_date],
+      description: params[:description],
+      isbn_10: params[:isbn_10],
+      isbn_13: params[:isbn_13],
+      image_url: params[:image_url]
+    }
+    
+    begin
+      book = Book.create_from_google_books_data(user: current_user, data: book_data)
+      redirect_to book, notice: 'Book was successfully added from Google Books!'
+    rescue ActiveRecord::RecordInvalid => e
+      redirect_to books_path, alert: "Failed to create book: #{e.message}"
+>>>>>>> heroku/master
     end
     
     render :new
