@@ -92,7 +92,7 @@ class BooksController < ApplicationController
 
   def new_from_google_books
     @book = current_user.books.build
-    
+
     # Google Books情報を事前設定
     if params[:google_books_id].present?
       @book.google_books_id = params[:google_books_id]

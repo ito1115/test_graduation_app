@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
       bookCards.forEach(card => {
         const title = card.querySelector('h3 a')?.textContent?.toLowerCase() || '';
         
-        // 著者名を取得（Author:を含むpタグを探す）
+        // 著者名を取得(Author:を含むpタグを探す)
         let author = '';
         const authorElements = card.querySelectorAll('p');
         authorElements.forEach(p => {
