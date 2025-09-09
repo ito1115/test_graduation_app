@@ -52,21 +52,40 @@ class BooksController < ApplicationController
 
   def search
     @query = params[:query] || params[:isbn]
-    @search_results = []
+    @page = params[:page]&.to_i || 1
+    @per_page = 20
     
     if @query.blank?
+      @search_results = []
+      @pagination_info = { total_items: 0, current_page: @page, per_page: @per_page, total_pages: 0 }
       return
     end
 
-    # まずISBN検索を試す
-    @search_results = GoogleBooksService.search_by_isbn(@query)
+    # ページネーション対応の検索
+    result = nil
     
-    # ISBNで見つからない場合はタイトル検索を試す
-    if @search_results.blank?
-      @search_results = GoogleBooksService.search_by_title(@query)
+    # まずISBN検索を試す
+    isbn_result = GoogleBooksService.search_by_isbn(@query, page: @page, per_page: @per_page)
+    
+    if isbn_result && isbn_result.is_a?(Hash) && isbn_result[:results]&.any?
+      result = isbn_result
+    else
+      # ISBNで見つからない場合はタイトル検索を試す
+      result = GoogleBooksService.search_by_title(@query, page: @page, per_page: @per_page)
     end
     
-    @search_results ||= []
+    if result && result.is_a?(Hash)
+      @search_results = result[:results] || []
+      @pagination_info = {
+        total_items: result[:total_items] || 0,
+        current_page: result[:current_page] || @page,
+        per_page: result[:per_page] || @per_page,
+        total_pages: result[:total_pages] || 0
+      }
+    else
+      @search_results = result || []
+      @pagination_info = { total_items: 0, current_page: @page, per_page: @per_page, total_pages: 0 }
+    end
   end
 
   def search_google_books
@@ -78,7 +97,8 @@ class BooksController < ApplicationController
       return
     end
 
-    results = Book.search_google_books_by_title(query, author: author)
+    # 全件取得を有効にする
+    results = Book.search_google_books_by_title(query, author: author, max_results: nil)
     render json: { books: results }
   end
 
