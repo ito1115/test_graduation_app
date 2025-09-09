@@ -116,8 +116,8 @@ class Book < ApplicationRecord
       GoogleBooksService.search_by_isbn(isbn)
     end
     
-    def search_google_books_by_title(title, author: nil, max_results: nil)
-      GoogleBooksService.search_by_title(title, author: author, max_results: max_results)
+    def search_google_books_by_title(title, author: nil, max_results: nil, page: 1, per_page: 20)
+      GoogleBooksService.search_by_title(title, author: author, max_results: max_results, page: page, per_page: per_page)
     end
     
     def create_from_google_books_data(user:, data:)
