@@ -6,7 +6,7 @@ class GoogleBooksService
   BASE_URL = 'https://www.googleapis.com/books/v1/volumes'
   
   class << self
-    def search_by_isbn(isbn)
+    def search_by_isbn(isbn, max_results: nil)
       return nil if isbn.blank?
       
       # ISBN-10またはISBN-13の形式を検証
@@ -14,10 +14,10 @@ class GoogleBooksService
       return nil unless valid_isbn?(clean_isbn)
       
       query = "isbn:#{clean_isbn}"
-      search_books(query)
+      search_books(query, max_results: max_results)
     end
     
-    def search_by_title(title, author: nil)
+    def search_by_title(title, author: nil, max_results: nil)
       return nil if title.blank?
       
       # 部分一致検索のため、intitleとinauthorを使わずに通常の検索を使用
@@ -26,7 +26,7 @@ class GoogleBooksService
       query_parts << author.strip if author.present?
       
       query = query_parts.join(" ")
-      search_books(query)
+      search_books(query, max_results: max_results)
     end
     
     def get_book_by_id(google_books_id)
@@ -50,23 +50,51 @@ class GoogleBooksService
     
     private
     
-    def search_books(query)
+    def search_books(query, max_results: nil)
+      all_results = []
+      start_index = 0
+      max_per_request = 40  # Google Books APIの最大値
+      max_total_results = max_results || 1000  # デフォルトで最大1000件
+      
       begin
-        uri = URI(BASE_URL)
-        uri.query = URI.encode_www_form(q: query, maxResults: 10)
-        
-        response = Net::HTTP.get_response(uri)
-        
-        if response.code == '200'
-          data = JSON.parse(response.body)
-          parse_search_results(data)
-        else
-          Rails.logger.error "Google Books API error: #{response.code} - #{response.body}"
-          []
+        loop do
+          remaining_results = max_total_results - all_results.length
+          break if remaining_results <= 0
+          
+          current_max = [max_per_request, remaining_results].min
+          
+          uri = URI(BASE_URL)
+          uri.query = URI.encode_www_form(
+            q: query, 
+            maxResults: current_max,
+            startIndex: start_index
+          )
+          
+          response = Net::HTTP.get_response(uri)
+          
+          if response.code == '200'
+            data = JSON.parse(response.body)
+            current_results = parse_search_results(data)
+            
+            break if current_results.empty?
+            
+            all_results.concat(current_results)
+            
+            # totalItemsが利用可能な場合はそれを使用
+            total_items = data['totalItems'] || 0
+            break if all_results.length >= total_items || current_results.length < current_max
+            
+            start_index += current_max
+          else
+            Rails.logger.error "Google Books API error: #{response.code} - #{response.body}"
+            break
+          end
         end
+        
+        all_results
       rescue => e
         Rails.logger.error "Google Books API connection error: #{e.message}"
-        []
+        all_results.empty? ? [] : all_results
       end
     end
     

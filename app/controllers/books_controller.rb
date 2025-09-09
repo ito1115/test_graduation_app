@@ -58,12 +58,15 @@ class BooksController < ApplicationController
       return
     end
 
+    # 検索結果の最大数を設定（全件取得）
+    max_results = nil  # 全件取得する場合はnilを指定
+
     # まずISBN検索を試す
-    @search_results = GoogleBooksService.search_by_isbn(@query)
+    @search_results = GoogleBooksService.search_by_isbn(@query, max_results: max_results)
     
     # ISBNで見つからない場合はタイトル検索を試す
     if @search_results.blank?
-      @search_results = GoogleBooksService.search_by_title(@query)
+      @search_results = GoogleBooksService.search_by_title(@query, max_results: max_results)
     end
     
     @search_results ||= []
@@ -78,7 +81,8 @@ class BooksController < ApplicationController
       return
     end
 
-    results = Book.search_google_books_by_title(query, author: author)
+    # 全件取得を有効にする
+    results = Book.search_google_books_by_title(query, author: author, max_results: nil)
     render json: { books: results }
   end
 
@@ -92,11 +96,7 @@ class BooksController < ApplicationController
 
   def new_from_google_books
     @book = current_user.books.build
-<<<<<<< HEAD
-
-=======
     
->>>>>>> heroku/master
     # Google Books情報を事前設定
     if params[:google_books_id].present?
       @book.google_books_id = params[:google_books_id]
@@ -108,8 +108,6 @@ class BooksController < ApplicationController
       @book.isbn_10 = params[:isbn_10]
       @book.isbn_13 = params[:isbn_13]
       @book.image_url = params[:image_url]
-<<<<<<< HEAD
-=======
     end
     
     render :new
@@ -133,10 +131,7 @@ class BooksController < ApplicationController
       redirect_to book, notice: 'Book was successfully added from Google Books!'
     rescue ActiveRecord::RecordInvalid => e
       redirect_to books_path, alert: "Failed to create book: #{e.message}"
->>>>>>> heroku/master
     end
-    
-    render :new
   end
 
 
