@@ -69,3 +69,5 @@ end
 
 gem 'devise'
 gem 'whenever', require: false
+gem 'dotenv-rails'
+gem 'ruby-openai'

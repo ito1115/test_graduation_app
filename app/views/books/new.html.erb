@@ -59,7 +59,26 @@
 
     <div class="form-group">
       <%= form.label :purchase_reason, "購入理由", class: "form-label required" %>
-      <%= form.text_area :purchase_reason, class: "form-control", rows: 3, placeholder: "なぜこの本を購入しましたか？", required: true %>
+      <div class="ai-suggestion-container" id="aiSuggestionContainer" style="display: none;">
+        <div class="ai-suggestion-header">
+          <span class="ai-icon">🤔</span>
+          <span class="ai-label">もしかしたら...</span>
+        </div>
+        <div class="ai-suggestion-text" id="aiSuggestionText"></div>
+        <div class="ai-suggestion-buttons">
+          <button type="button" class="btn-use-suggestion" id="useSuggestionBtn">この理由を使う</button>
+          <button type="button" class="btn-retry-suggestion" id="retrySuggestionBtn">別の理由にする</button>
+        </div>
+      </div>
+      <%= form.text_area :purchase_reason, class: "form-control", rows: 3, placeholder: "なぜこの本を購入しましたか？", required: true, id: "purchase_reason_field" %>
+      <div class="ai-button-container">
+        <button type="button" class="btn-ai-suggest" id="aiSuggestBtn">
+          ✨ AIに提案してもらう
+        </button>
+        <div class="ai-loading" id="aiLoading" style="display: none;">
+          <span class="spinner"></span> AIが考え中...
+        </div>
+      </div>
       <small class="form-text">例: 仕事のスキルアップのため、趣味で読みたい、友人に勧められた など</small>
     </div>
 
@@ -304,9 +323,272 @@ textarea.form-control {
   .form-group.half {
     margin-bottom: 20px;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
 }
+
+/* AI提案機能のスタイル */
+.ai-suggestion-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-suggestion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ai-icon {
+  font-size: 24px;
+}
+
+.ai-label {
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.ai-suggestion-text {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 15px;
+  border-radius: 8px;
+  color: #333;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.ai-suggestion-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-use-suggestion {
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+  flex: 1;
+}
+
+.btn-use-suggestion:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-retry-suggestion {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  border: 2px solid white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+  flex: 1;
+}
+
+.btn-retry-suggestion:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.ai-button-container {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn-ai-suggest {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+}
+
+.btn-ai-suggest:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+}
+
+.ai-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #667eea;
+  font-weight: bold;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid rgba(102, 126, 234, 0.3);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOMContentLoaded fired');
+
+  const aiSuggestBtn = document.getElementById('aiSuggestBtn');
+  const aiLoading = document.getElementById('aiLoading');
+  const aiSuggestionContainer = document.getElementById('aiSuggestionContainer');
+  const aiSuggestionText = document.getElementById('aiSuggestionText');
+  const useSuggestionBtn = document.getElementById('useSuggestionBtn');
+  const retrySuggestionBtn = document.getElementById('retrySuggestionBtn');
+  const purchaseReasonField = document.getElementById('purchase_reason_field');
+
+  console.log('Elements found:', {
+    aiSuggestBtn: !!aiSuggestBtn,
+    aiLoading: !!aiLoading,
+    aiSuggestionContainer: !!aiSuggestionContainer,
+    aiSuggestionText: !!aiSuggestionText,
+    useSuggestionBtn: !!useSuggestionBtn,
+    retrySuggestionBtn: !!retrySuggestionBtn,
+    purchaseReasonField: !!purchaseReasonField
+  });
+
+  if (!aiSuggestBtn) {
+    console.error('aiSuggestBtn not found!');
+    return;
+  }
+
+  // 本の情報を取得する関数
+  function getBookInfo() {
+    // Google Booksから来た場合は隠しフィールドから取得
+    const googleBooksId = document.querySelector('input[name="book[google_books_id]"]');
+    if (googleBooksId && googleBooksId.value) {
+      return {
+        title: document.querySelector('input[name="book[title]"]')?.value || '',
+        author: document.querySelector('input[name="book[author]"]')?.value || '',
+        description: document.querySelector('input[name="book[description]"]')?.value || ''
+      };
+    }
+
+    // 通常の入力フォームから取得
+    const titleField = document.querySelector('input[name="book[title]"]');
+    return {
+      title: titleField?.value || '',
+      author: '',
+      description: ''
+    };
+  }
+
+  // CSRFトークンを取得
+  function getCSRFToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.content || '';
+  }
+
+  // AIに提案してもらうボタンのクリックイベント
+  aiSuggestBtn.addEventListener('click', async function(e) {
+    console.log('AI Suggest button clicked!');
+    e.preventDefault(); // フォーム送信を防ぐ
+    await requestAISuggestion();
+  });
+
+  // AIに提案を再度リクエストする共通関数
+  async function requestAISuggestion() {
+    const bookInfo = getBookInfo();
+
+    // タイトルが入力されていない場合
+    if (!bookInfo.title || bookInfo.title.trim() === '') {
+      alert('本のタイトルを入力してください');
+      return;
+    }
+
+    // ローディング表示
+    aiSuggestBtn.style.display = 'none';
+    aiLoading.style.display = 'flex';
+    aiSuggestionContainer.style.display = 'none';
+
+    try {
+      const response = await fetch('/books/predict_purchase_reason', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': getCSRFToken()
+        },
+        body: JSON.stringify({
+          title: bookInfo.title,
+          author: bookInfo.author,
+          description: bookInfo.description
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.reason) {
+        // AI提案を表示
+        aiSuggestionText.textContent = data.reason;
+        aiSuggestionContainer.style.display = 'block';
+      } else {
+        alert('AI推測に失敗しました: ' + (data.error || '不明なエラー'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('AI推測中にエラーが発生しました');
+    } finally {
+      // ローディング非表示、ボタン再表示
+      aiLoading.style.display = 'none';
+      aiSuggestBtn.style.display = 'block';
+    }
+  }
+
+  // 「この理由を使う」ボタンのクリックイベント
+  useSuggestionBtn.addEventListener('click', function() {
+    const suggestedReason = aiSuggestionText.textContent;
+    purchaseReasonField.value = suggestedReason;
+    aiSuggestionContainer.style.display = 'none';
+  });
+
+  // 「別の理由にする」ボタンのクリックイベント
+  retrySuggestionBtn.addEventListener('click', async function(e) {
+    e.preventDefault();
+    await requestAISuggestion();
+  });
+});
+</script>
