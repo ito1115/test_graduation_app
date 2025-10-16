@@ -112,7 +112,7 @@ class BooksController < ApplicationController
 
   def new_from_google_books
     @book = current_user.books.build
-    
+
     # Google Books情報を事前設定
     if params[:google_books_id].present?
       @book.google_books_id = params[:google_books_id]
@@ -125,7 +125,7 @@ class BooksController < ApplicationController
       @book.isbn_13 = params[:isbn_13]
       @book.image_url = params[:image_url]
     end
-    
+
     render :new
   end
 
@@ -141,12 +141,28 @@ class BooksController < ApplicationController
       isbn_13: params[:isbn_13],
       image_url: params[:image_url]
     }
-    
+
     begin
       book = Book.create_from_google_books_data(user: current_user, data: book_data)
       redirect_to book, notice: 'Book was successfully added from Google Books!'
     rescue ActiveRecord::RecordInvalid => e
       redirect_to books_path, alert: "Failed to create book: #{e.message}"
+    end
+  end
+
+  # AI購入理由推測API
+  def predict_purchase_reason
+    predicted_reason = PurchaseReasonPredictor.predict(
+      user: current_user,
+      book_title: params[:title],
+      book_author: params[:author],
+      book_description: params[:description]
+    )
+
+    if predicted_reason.present?
+      render json: { success: true, reason: predicted_reason }
+    else
+      render json: { success: false, error: 'AI推測に失敗しました' }, status: :unprocessable_entity
     end
   end
 

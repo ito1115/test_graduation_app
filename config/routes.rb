@@ -5,11 +5,12 @@ Rails.application.routes.draw do
     member do
       patch :refresh_from_google_books
     end
-    
+
     collection do
       get :search
       get :search_google_books
       get :new_from_google_books
+      post :predict_purchase_reason
     end
   end
 
