@@ -10,9 +10,35 @@
   <div class="search-form">
     <%= form_with url: search_books_path, method: :get, local: true, class: "search-form-inner" do |form| %>
       <%= form.label :query, "タイトル・ISBN" %>
-      <%= form.text_field :query, value: @query, placeholder: "本のタイトルまたはISBNを入力", class: "search-input" %>
+      <div class="search-input-container">
+        <%= form.text_field :query, value: @query, placeholder: "本のタイトルまたはISBNを入力", class: "search-input", id: "search-input" %>
+        <button type="button" id="barcodeScanBtn" class="btn btn-barcode" title="バーコードをスキャン">
+          📷 バーコード
+        </button>
+      </div>
       <%= form.submit "検索", class: "btn btn-primary" %>
     <% end %>
+  </div>
+
+  <!-- バーコードスキャナーモーダル -->
+  <div id="barcodeModal" class="barcode-modal" style="display: none;">
+    <div class="barcode-modal-content">
+      <div class="barcode-modal-header">
+        <h3>📷 バーコードをスキャン</h3>
+        <button type="button" id="closeBarcodeModal" class="close-btn">&times;</button>
+      </div>
+      <div class="barcode-modal-body">
+        <div id="barcode-scanner" class="barcode-scanner"></div>
+        <div id="barcode-result" class="barcode-result" style="display: none;">
+          <p>ISBN: <strong id="detected-isbn"></strong></p>
+          <p class="barcode-success">✓ バーコードを検出しました！</p>
+        </div>
+        <div id="barcode-error" class="barcode-error" style="display: none;"></div>
+      </div>
+      <div class="barcode-modal-footer">
+        <button type="button" id="cancelBarcodeScan" class="btn btn-secondary">キャンセル</button>
+      </div>
+    </div>
   </div>
 
   <% if @query.present? %>
@@ -434,52 +460,356 @@
   background: #f8f9fa;
 }
 
+/* 検索入力コンテナ */
+.search-input-container {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+}
+
+.btn-barcode {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.btn-barcode:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* バーコードモーダル */
+.barcode-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.barcode-modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.barcode-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 2px solid #eee;
+}
+
+.barcode-modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #999;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  transition: color 0.3s;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.barcode-modal-body {
+  padding: 20px;
+}
+
+.barcode-scanner {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 300px;
+}
+
+.barcode-scanner video,
+.barcode-scanner canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.barcode-result {
+  margin-top: 20px;
+  padding: 15px;
+  background: #e8f5e9;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+}
+
+.barcode-result p {
+  margin: 5px 0;
+  color: #2e7d32;
+}
+
+.barcode-success {
+  font-weight: bold;
+  color: #1b5e20;
+}
+
+.barcode-error {
+  margin-top: 20px;
+  padding: 15px;
+  background: #ffebee;
+  border-radius: 8px;
+  border-left: 4px solid #f44336;
+  color: #c62828;
+}
+
+.barcode-modal-footer {
+  padding: 20px;
+  border-top: 2px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
     gap: 15px;
     align-items: flex-start;
   }
-  
+
   .header-actions {
     flex-wrap: wrap;
   }
-  
+
   .search-form-inner {
     flex-direction: column;
     gap: 10px;
     align-items: stretch;
   }
-  
+
   .search-input {
     min-width: auto;
   }
-  
+
+  .search-input-container {
+    flex-direction: column;
+  }
+
+  .btn-barcode {
+    width: 100%;
+  }
+
   .search-result-item {
     flex-direction: column;
     gap: 15px;
   }
-  
+
   .book-image {
     align-self: center;
   }
-  
+
   .book-actions {
     align-self: stretch;
   }
-  
+
   .btn {
     width: 100%;
   }
-  
+
   .page-link {
     padding: 8px 10px;
     font-size: 14px;
   }
-  
+
   .pagination {
     flex-wrap: wrap;
     justify-content: center;
   }
+
+  .barcode-modal-content {
+    max-height: 95vh;
+  }
 }
 </style>
+
+<!-- QuaggaJS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOMContentLoaded - Barcode scanner script loaded');
+
+  const barcodeScanBtn = document.getElementById('barcodeScanBtn');
+  const barcodeModal = document.getElementById('barcodeModal');
+  const closeBarcodeModal = document.getElementById('closeBarcodeModal');
+  const cancelBarcodeScan = document.getElementById('cancelBarcodeScan');
+  const searchInput = document.getElementById('search-input');
+  const barcodeResult = document.getElementById('barcode-result');
+  const detectedIsbn = document.getElementById('detected-isbn');
+  const barcodeError = document.getElementById('barcode-error');
+  const barcodeScanner = document.getElementById('barcode-scanner');
+
+  console.log('Elements found:', {
+    barcodeScanBtn: !!barcodeScanBtn,
+    barcodeModal: !!barcodeModal,
+    closeBarcodeModal: !!closeBarcodeModal,
+    cancelBarcodeScan: !!cancelBarcodeScan,
+    searchInput: !!searchInput,
+    barcodeResult: !!barcodeResult,
+    detectedIsbn: !!detectedIsbn,
+    barcodeError: !!barcodeError,
+    barcodeScanner: !!barcodeScanner
+  });
+
+  if (!barcodeScanBtn) {
+    console.error('Barcode scan button not found!');
+    return;
+  }
+
+  let isScanning = false;
+
+  // バーコードスキャンボタンのクリック
+  barcodeScanBtn.addEventListener('click', function(e) {
+    console.log('Barcode button clicked!');
+    e.preventDefault();
+    openBarcodeScanner();
+  });
+
+  // モーダルを閉じる
+  closeBarcodeModal.addEventListener('click', closeBarcodeScanner);
+  cancelBarcodeScan.addEventListener('click', closeBarcodeScanner);
+
+  // モーダル背景をクリックして閉じる
+  barcodeModal.addEventListener('click', function(e) {
+    if (e.target === barcodeModal) {
+      closeBarcodeScanner();
+    }
+  });
+
+  function openBarcodeScanner() {
+    console.log('Opening barcode scanner...');
+    barcodeModal.style.display = 'flex';
+    barcodeResult.style.display = 'none';
+    barcodeError.style.display = 'none';
+    startScanning();
+  }
+
+  function closeBarcodeScanner() {
+    barcodeModal.style.display = 'none';
+    stopScanning();
+  }
+
+  function startScanning() {
+    if (isScanning) return;
+    isScanning = true;
+
+    // Quagga初期化
+    Quagga.init({
+      inputStream: {
+        name: "Live",
+        type: "LiveStream",
+        target: barcodeScanner,
+        constraints: {
+          width: 640,
+          height: 480,
+          facingMode: "environment" // 背面カメラを使用
+        }
+      },
+      decoder: {
+        readers: [
+          "ean_reader",      // EAN-13 (ISBNで使用)
+          "ean_8_reader",    // EAN-8
+          "upc_reader",      // UPC
+          "upc_e_reader"     // UPC-E
+        ]
+      },
+      locate: true,
+      locator: {
+        patchSize: "medium",
+        halfSample: true
+      },
+      numOfWorkers: navigator.hardwareConcurrency || 4,
+      frequency: 10
+    }, function(err) {
+      if (err) {
+        console.error('Quagga initialization error:', err);
+        showError('カメラの起動に失敗しました。カメラへのアクセスを許可してください。');
+        return;
+      }
+      console.log("Quagga initialization finished. Ready to start");
+      Quagga.start();
+    });
+
+    // バーコード検出イベント
+    Quagga.onDetected(onBarcodeDetected);
+  }
+
+  function stopScanning() {
+    if (!isScanning) return;
+    isScanning = false;
+
+    if (Quagga) {
+      Quagga.stop();
+      Quagga.offDetected(onBarcodeDetected);
+    }
+  }
+
+  function onBarcodeDetected(result) {
+    const code = result.codeResult.code;
+    console.log('Barcode detected:', code);
+
+    // ISBNとして有効か簡易チェック（13桁または10桁）
+    if (code && (code.length === 13 || code.length === 10)) {
+      detectedIsbn.textContent = code;
+      barcodeResult.style.display = 'block';
+      barcodeError.style.display = 'none';
+
+      // 検索フォームに自動入力
+      searchInput.value = code;
+
+      // スキャン停止
+      stopScanning();
+
+      // 1秒後にモーダルを閉じて自動検索
+      setTimeout(function() {
+        closeBarcodeScanner();
+        // フォームを自動送信
+        searchInput.closest('form').submit();
+      }, 1500);
+    }
+  }
+
+  function showError(message) {
+    barcodeError.textContent = message;
+    barcodeError.style.display = 'block';
+    barcodeResult.style.display = 'none';
+  }
+});
+</script>
